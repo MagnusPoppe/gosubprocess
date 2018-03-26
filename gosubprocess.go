@@ -41,7 +41,7 @@ func (program Program) Kill() {
 }
 
 func (program Program) Finish() {
-	// Closing communication and killing program.
+	// Waiting for the program to finish
 	program.command.Wait()
 
 	// Setting to nil to make sure no errors are made by bad use.
@@ -58,9 +58,11 @@ func SetupProgram(args ...string) Program {
 	check(err)
 	stdout, err := cmd.StdoutPipe()
 	check(err)
+	stderr, err := cmd.StderrPipe()
+	check(err)
 
 	cmd.Start()
-	return Program{cmd, stdin, stdout, nil}
+	return Program{cmd, stdin, stdout, stderr}
 }
 
 func check(err error) {
