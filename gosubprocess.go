@@ -4,13 +4,13 @@ import (
 	"os/exec"
 	"log"
 	"io"
+	"os"
 )
 
 type Program struct {
 	command *exec.Cmd
 	stdin   io.WriteCloser
 	stdout  io.Reader
-	stderr  io.Reader
 }
 
 func (program Program) Send(message string) {
@@ -23,11 +23,6 @@ func (program Program) ReadOut() string {
 	n, _ := program.stdout.Read(out)
 	return string(out[:n])
 }
-func (program Program) ReadError() string {
-	out := make([]byte, 1024)
-	n, _ := program.stdout.Read(out)
-	return string(out[:n])
-}
 
 func (program Program) Kill() {
 	// Closing communication and killing program.
@@ -35,7 +30,6 @@ func (program Program) Kill() {
 
 	// Setting to nil to make sure no errors are made by bad use.
 	program.stdout = nil
-	program.stderr = nil
 	program.stdin = nil
 	program.command = nil
 }
@@ -46,7 +40,6 @@ func (program Program) Finish() {
 
 	// Setting to nil to make sure no errors are made by bad use.
 	program.stdout = nil
-	program.stderr = nil
 	program.stdin = nil
 	program.command = nil
 }
@@ -58,11 +51,10 @@ func SetupProgram(args ...string) Program {
 	check(err)
 	stdout, err := cmd.StdoutPipe()
 	check(err)
-	stderr, err := cmd.StderrPipe()
-	check(err)
+	cmd.Stderr = os.Stderr
 
 	cmd.Start()
-	return Program{cmd, stdin, stdout, stderr}
+	return Program{cmd, stdin, stdout}
 }
 
 func check(err error) {
