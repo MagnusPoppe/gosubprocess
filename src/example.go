@@ -9,6 +9,7 @@ func main() {
 	// Creating the process and starting the program:
 	python := gosubprocess.SetupProgram("python3", "src/example.py")
 	defer python.Kill()
+
 	// Reading output from process
 	fmt.Printf("Recieved: %s\n", python.ReadOut())
 
